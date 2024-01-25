@@ -34,9 +34,9 @@ module.exports = function(RED) {
                 if (node.time) { // if there's a time set
                     node.log("Starting " + node.time + " second timer");
                     var delayMs = 1000 * node.time;
-                    node.timeout = setTimeout(reportExcursion, delayMs);
+                    node.timeout = setTimeout(reportSoftExcursion, delayMs);
                 } else { // otherwise just report now
-                    reportExcursion();
+                    reportSoftExcursion();
                 }
             }
         }
@@ -60,18 +60,21 @@ module.exports = function(RED) {
         function reportTimeout() {
             node.status({fill:"red",shape:"dot",text:"timeout"});
             stopOutputTimer();
-            node.send([null, true]);
+            node.send([null, null, true]);
             setTimeout(() => {
-                node.send([null, false])
+                node.send([null, null, false])
             }, 1000);
         }
 
-        function reportExcursion() {
+        function reportExcursion(soft) {
             node.status({fill:"red",shape:"dot",text:"Excursion! (" + node.lastMsg.payload + ")"});
             stopTimer();
             startOutputTimer();
             node.inExcursion = true;
-            node.send([node.lastMsg, null]);
+            if(soft)
+                node.send([node.lastMsg, null]);
+            else
+                node.send([null, node.lastMsg, null]);
         }
 
         function valueIsOutsideSoftLimits(value) {
@@ -108,11 +111,11 @@ module.exports = function(RED) {
 
             if( valueIsOutsideHardLimits(current) ) {
                 node.log("Value exceeds hard limits: " + current);
-                reportExcursion();
+                reportExcursion(false);
             } else if( valueIsOutsideSoftLimits(current) ) {
                 node.log("Value exceeds soft limits: " + current);
                 if (node.inExcursion) {
-                    reportExcursion();
+                    reportExcursion(true);
                 } else {
                     node.status({fill:"yellow",shape:"dot",text:"Soft excursion... (" + current + ")"});
                     startTimer();
