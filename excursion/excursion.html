@@ -5,13 +5,14 @@
         defaults: {
             name: {value:""},
             time: {value:"3600"},
+            timeout_time: {value: "3600"},
             softmax: {value:""},
             softmin: {value:""},
             hardmax: {value:""},
             hardmin: {value:""}
         },
         inputs:1,
-        outputs:1,
+        outputs:2,
         icon: "bridge.png",
         label: function() {
             return this.name||"excursion";
@@ -27,6 +28,10 @@
     <div class="form-row">
         <label for="node-input-time"><i class="icon-pause"></i>Time</label>
         <input type="text" id="node-input-time" placeholder="Allowable soft excursion time, in seconds">
+    </div>
+    <div class="form-row">
+        <label for="node-input-timeout_time"><i class="icon-pause"></i>Time</label>
+        <input type="text" id="node-input-timeout_time" placeholder="Timeout in seconds for when timeout output is triggered">
     </div>
     <div class="form-row">
         <label for="node-input-hardmax"><i class="icon-tasks"></i>Hard Max</label>

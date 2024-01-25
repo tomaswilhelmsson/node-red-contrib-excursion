@@ -6,16 +6,28 @@ module.exports = function(RED) {
         var node = this;
 
         node.time = config.time;
+        node.timeout_time = config.timeout_time;
         node.hardmax = isNaN(config.hardmax) ? null : Number(config.hardmax);
         node.softmax = isNaN(config.softmax) ? null : Number(config.softmax);
         node.softmin = isNaN(config.softmin) ? null : Number(config.softmin);
         node.hardmin = isNaN(config.hardmin) ? null : Number(config.hardmin);
 
         node.timeout = null;
+        node.output_timeout = null;
         node.lastMsg = null;
         node.inExcursion = false;
 
         node.status({fill:"blue",shape:"ring",text:"Waiting for data"});
+
+        function startOutputTimer() {
+            if( node.output_timeout == null ) {
+                if (node.timeout_time) { // if there's a time set
+                    node.log("Starting " + node.time + " second timer for output");
+                    var delayMs = 1000 * node.timeout_time;
+                    node.output_timeout = setTimeout(reportTimeout, delayMs);
+                }
+            }
+        }
 
         function startTimer() {
             if( node.timeout == null ) {
@@ -37,11 +49,29 @@ module.exports = function(RED) {
             }
         }
 
+        function stopOutputTimer() {
+            if(node.output_timeout != null) {
+                node.log("Stopping output timer");
+                clearTimeout(node.output_timeout);
+                node.output_timeout = null;
+            }
+        }
+
+        function reportTimeout() {
+            node.status({fill:"red",shape:"dot",text:"timeout"});
+            stopOutputTimer();
+            node.send([null, true]);
+            setTimeout(() => {
+                node.send([null, false])
+            }, 1000);
+        }
+
         function reportExcursion() {
             node.status({fill:"red",shape:"dot",text:"Excursion! (" + node.lastMsg.payload + ")"});
             stopTimer();
+            startOutputTimer();
             node.inExcursion = true;
-            node.send(node.lastMsg);
+            node.send([node.lastMsg, null]);
         }
 
         function valueIsOutsideSoftLimits(value) {
