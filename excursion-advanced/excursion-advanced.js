@@ -1,7 +1,7 @@
 var https = require('https');
 
 module.exports = function(RED) {
-    function ExcursionNode(config) {
+    function ExcursionAdvancedNode(config) {
         RED.nodes.createNode(this,config);
         var node = this;
 
@@ -11,18 +11,21 @@ module.exports = function(RED) {
         node.softmax = isNaN(config.softmax) ? null : Number(config.softmax);
         node.softmin = isNaN(config.softmin) ? null : Number(config.softmin);
         node.hardmin = isNaN(config.hardmin) ? null : Number(config.hardmin);
+        node.reset_on_new_inside = Boolean(config.reset_on_new_inside);
+        node.stop_output_timer = Boolean(config.stop_output_timer);
 
         node.timeout = null;
         node.output_timeout = null;
         node.lastMsg = null;
         node.inExcursion = false;
 
+
         node.status({fill:"blue",shape:"ring",text:"Waiting for data"});
 
         function startOutputTimer() {
             if( node.output_timeout == null ) {
                 if (node.timeout_time) { // if there's a time set
-                    node.log("Starting " + node.time + " second timer for output");
+                    node.log("Starting " + node.timeout_time + " second timer for output");
                     var delayMs = 1000 * node.timeout_time;
                     node.output_timeout = setTimeout(reportTimeout, delayMs);
                 }
@@ -34,9 +37,9 @@ module.exports = function(RED) {
                 if (node.time) { // if there's a time set
                     node.log("Starting " + node.time + " second timer");
                     var delayMs = 1000 * node.time;
-                    node.timeout = setTimeout(reportSoftExcursion, delayMs);
+                    node.timeout = setTimeout(() => reportExcursion(true), delayMs);
                 } else { // otherwise just report now
-                    reportSoftExcursion();
+                    reportExcursion(true);
                 }
             }
         }
@@ -57,18 +60,23 @@ module.exports = function(RED) {
             }
         }
 
+        function resetTimeout() {
+            stopOutputTimer();
+            startOutputTimer();
+        }
         function reportTimeout() {
             node.status({fill:"red",shape:"dot",text:"timeout"});
             stopOutputTimer();
-            node.send([null, null, true]);
-            setTimeout(() => {
-                node.send([null, null, false])
-            }, 1000);
+            node.send([null, null, { topic: "timeout", payload: true }]);
+//            setTimeout(() => {
+//                node.send([null, null, { payload: false }])
+//            }, 1000);
         }
 
         function reportExcursion(soft) {
             node.status({fill:"red",shape:"dot",text:"Excursion! (" + node.lastMsg.payload + ")"});
             stopTimer();
+            stopOutputTimer();
             startOutputTimer();
             node.inExcursion = true;
             if(soft)
@@ -112,6 +120,9 @@ module.exports = function(RED) {
             if( valueIsOutsideHardLimits(current) ) {
                 node.log("Value exceeds hard limits: " + current);
                 reportExcursion(false);
+                if(node.reset_on_new_inside_soft)
+                    resetTimeout();
+
             } else if( valueIsOutsideSoftLimits(current) ) {
                 node.log("Value exceeds soft limits: " + current);
                 if (node.inExcursion) {
@@ -124,6 +135,8 @@ module.exports = function(RED) {
                 node.status({fill:"green",shape:"dot",text:"OK (" + current + ")"});
                 node.inExcursion = false;
                 stopTimer();
+                if(node.stop_output_timer)
+                    stopOutputTimer();
             }
         });
 
@@ -132,5 +145,5 @@ module.exports = function(RED) {
         });
     };
 
-    RED.nodes.registerType("excursion",ExcursionNode, { });
+    RED.nodes.registerType("excursion-advanced",ExcursionAdvancedNode, { });
 };

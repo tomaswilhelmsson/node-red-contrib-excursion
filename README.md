@@ -1,4 +1,4 @@
-# node-red-contrib-excursion
+# node-red-contrib-excursion-advanced
 A node that monitors a value for sustained excursions from a range
 
 You can find source code and more information here:

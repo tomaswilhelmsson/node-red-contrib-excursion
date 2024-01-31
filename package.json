@@ -1,5 +1,5 @@
 {
-  "name": "node-red-contrib-excursion",
+  "name": "node-red-contrib-excursion-advanced",
   "version": "0.1.7",
   "description": "A node that reports when a value leaves a specified range for a specified period of time.",
   "author": "Clough42 (https://github.com/clough42)",
@@ -12,15 +12,15 @@
     "excursion",
     "threshold"
   ],
-  "homepage": "https://github.com/clough42/node-red-contrib-excursion",
+  "homepage": "https://github.com/clough42/node-red-contrib-excursion-advanced",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/clough42/node-red-contrib-excursion"
+    "url": "https://github.com/clough42/node-red-contrib-excursion-advanced"
   },
   "node-red": {
     "nodes": {
-      "excursion": "excursion/excursion.js"
+      "excursion-advanced": "excursion-advanced/excursion-advanced.js"
     }
   }
 }

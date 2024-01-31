@@ -1,5 +1,5 @@
 <script type="text/javascript">
-    RED.nodes.registerType('excursion',{
+    RED.nodes.registerType('excursion-advanced',{
         category: 'function',
         color: '#e87d81',
         defaults: {
@@ -9,18 +9,21 @@
             softmax: {value:""},
             softmin: {value:""},
             hardmax: {value:""},
-            hardmin: {value:""}
+            hardmin: {value:""},
+            reset_on_new_inside: { value: "false" },
+            stop_output_timer: { value: "false" }
         },
         inputs:1,
         outputs:3,
         icon: "bridge.png",
         label: function() {
-            return this.name||"excursion";
-        }
+            return this.name||"excursion advanced";
+        },
+        outputLabels: ["soft excursion", "hard excursion", "timeout"]
     });
 </script>
 
-<script type="text/x-red" data-template-name="excursion">
+<script type="text/x-red" data-template-name="excursion-advanced">
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -30,8 +33,8 @@
         <input type="text" id="node-input-time" placeholder="Allowable soft excursion time, in seconds">
     </div>
     <div class="form-row">
-        <label for="node-input-timeout_time"><i class="icon-pause"></i>Time</label>
-        <input type="text" id="node-input-timeout_time" placeholder="Timeout in seconds for when timeout output is triggered">
+        <label for="node-input-timeout_time"><i class="icon-pause"></i>Output Timout</label>
+        <input type="text" id="node-input-timeout_time" placeholder="Time from excursion when timeout output is triggered">
     </div>
     <div class="form-row">
         <label for="node-input-hardmax"><i class="icon-tasks"></i>Hard Max</label>
@@ -49,9 +52,17 @@
         <label for="node-input-hardmin"><i class="icon-tasks"></i>Hard Min</label>
         <input type="text" id="node-input-hardmin" placeholder="Hard minimum value">
     </div>
+    <div class="form-row">
+        <input type="checkbox" id="node-input-reset_on_new_inside" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-reset_on_new_inside" style="width: auto">Reset timeout on new message inside excursion</label>
+    </div>
+    <div class="form-row">
+        <input type="checkbox" id="node-input-stop_output_timer" style="width: auto">
+        <label for="node-input-stop_output_timer" style="display: inline-block; width: auto; vertical-align: top;">Stop output timer if excursion goes green</label>
+    </div>
 </script>
 
-<script type="text/x-red" data-help-name="excursion">
+<script type="text/x-red" data-help-name="excursion-advanced">
     <p>Monitors a value for excursions from a range</p>
 
     <p>Use this node to process a stream of sensor values and ensure that they
